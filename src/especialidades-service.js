@@ -6,3 +6,12 @@ export const getAll = async () => {
   );
   return rows;
 };
+
+export const getById = async (id) => {
+  const [rows] = await db.query(
+    "SELECT * FROM especialidades WHERE id_especialidad = ? AND activo = 1",
+    [id]
+  );
+
+  return rows[0];
+};
