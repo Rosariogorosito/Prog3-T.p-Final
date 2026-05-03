@@ -6,3 +6,11 @@ export const getAll = async () => {
   );
   return rows;
 };
+
+export const update = async (id, nombre) => {
+  const [result] = await db.query(
+    "UPDATE especialidades SET nombre = ? WHERE id_especialidad = ? AND activo = 1",
+    [nombre, id]
+  );
+  return result;
+};
