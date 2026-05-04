@@ -7,7 +7,6 @@ const router = Router();
 
 router.get("/", controller.getAll);
 
-// EDITAR una especialidad 
 router.put("/:id", 
     [
     param("id").isInt().withMessage("El ID debe ser un número entero"),

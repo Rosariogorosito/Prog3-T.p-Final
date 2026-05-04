@@ -9,7 +9,7 @@ export const getAll = async (req, res) => {
     res.status(500).json({ message: "Error interno" });
   }
 };
-// Función especialidad................ 
+
 export const update = async (req, res) => {
   try {
     const id = req.params.id; 
