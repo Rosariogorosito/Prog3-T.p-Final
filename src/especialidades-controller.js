@@ -49,3 +49,22 @@ export const getById = async (req, res) => {
     });
   }
 };
+
+export const agregar = async (req, res) => {
+  try {
+    const { nombre } = req.body;
+    
+    const resultado = await service.agregarEspecialidad(nombre);
+
+    res.status(201).json({ 
+      mensaje: "La especialidad se guardó correctamente",
+      id_generado: resultado.insertId 
+    });
+    
+  } catch (error) {
+    console.log("Error detallado:", error); 
+    res.status(500).json({ 
+      mensaje: "Hubo un error al intentar guardar la especialidad" 
+    });
+  }
+};

@@ -23,3 +23,12 @@ export const getById = async (id) => {
 
   return rows[0];
 };
+
+// Agrega una nueva especialidad.
+export const agregarEspecialidad = async (nombreEspecialidad) => {
+  const [resultado] = await db.query(
+    "INSERT INTO especialidades (nombre, activo) VALUES (?, 1)",
+    [nombreEspecialidad]
+  );
+  return resultado;
+};

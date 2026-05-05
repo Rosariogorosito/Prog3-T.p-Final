@@ -22,4 +22,15 @@ router.put("/:id",
 controller.update 
 );
 
+router.post("/", 
+    [
+      body("nombre")
+        .notEmpty().withMessage("El nombre de la especialidad no puede estar vacío")
+        .isLength({ max: 120 }).withMessage("El nombre es demasiado largo (máximo 120 letras)"),
+      
+      validate
+    ], 
+    controller.agregar 
+);
+
 export default router;
