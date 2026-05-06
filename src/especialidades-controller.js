@@ -50,21 +50,20 @@ export const getById = async (req, res) => {
   }
 };
 
-export const agregar = async (req, res) => {
+export const remove = async (req, res) => {
   try {
-    const { nombre } = req.body;
+    const id = req.params.id; 
     
-    const resultado = await service.agregarEspecialidad(nombre);
+    const result = await service.remove(id);
 
-    res.status(201).json({ 
-      mensaje: "La especialidad se guardó correctamente",
-      id_generado: resultado.insertId 
-    });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Especialidad no encontrada" });
+    }
+
+    res.status(200).json({ message: "Especialidad eliminada correctamente (Soft Delete)" });
     
   } catch (error) {
-    console.log("Error detallado:", error); 
-    res.status(500).json({ 
-      mensaje: "Hubo un error al intentar guardar la especialidad" 
-    });
+    console.log("ERROR REAL:", error);
+    res.status(500).json({ message: "Error interno" });
   }
 };

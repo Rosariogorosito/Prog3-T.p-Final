@@ -24,10 +24,10 @@ export const getById = async (id) => {
   return rows[0];
 };
 
-export const agregarEspecialidad = async (nombreEspecialidad) => {
-  const [resultado] = await db.query(
-    "INSERT INTO especialidades (nombre, activo) VALUES (?, 1)",
-    [nombreEspecialidad]
+export const remove = async (id) => {
+  const [result] = await db.query(
+    "UPDATE especialidades SET activo = 0 WHERE id_especialidad = ?",
+    [id]
   );
-  return resultado;
+  return result;
 };
