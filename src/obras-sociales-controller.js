@@ -1,11 +1,13 @@
-import * as service from "./especialidades-service.js";
+import * as service from "./obras-sociales-service.js";
 
 export const getAll = async (req, res) => {
   try {
     const data = await service.getAll();
     res.json(data);
+
   } catch (error) {
     console.log("ERROR REAL:", error);
+
     res.status(500).json({
       message: "Error interno"
     });
@@ -20,7 +22,7 @@ export const getById = async (req, res) => {
 
     if (!data) {
       return res.status(404).json({
-        message: "Especialidad no encontrada"
+        message: "Obra social no encontrada"
       });
     }
 
@@ -28,6 +30,7 @@ export const getById = async (req, res) => {
 
   } catch (error) {
     console.log("ERROR REAL:", error);
+
     res.status(500).json({
       message: "Error interno"
     });
@@ -36,16 +39,27 @@ export const getById = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
-    const { nombre } = req.body;
+    const {
+      nombre,
+      descripcion,
+      porcentaje_descuento,
+      es_particular
+    } = req.body;
 
-    await service.create(nombre);
+    await service.create(
+      nombre,
+      descripcion,
+      porcentaje_descuento,
+      es_particular
+    );
 
     res.status(201).json({
-      message: "Especialidad creada correctamente"
+      message: "Obra social creada correctamente"
     });
 
   } catch (error) {
     console.log("ERROR REAL:", error);
+
     res.status(500).json({
       message: "Error interno"
     });
@@ -54,21 +68,33 @@ export const create = async (req, res) => {
 
 export const update = async (req, res) => {
   try {
-    const id = req.params.id;
-    const { nombre } = req.body;
+    const { id } = req.params;
 
-    const especialidad = await service.getById(id);
+    const {
+      nombre,
+      descripcion,
+      porcentaje_descuento,
+      es_particular
+    } = req.body;
 
-    if (!especialidad) {
+    const obraSocial = await service.getById(id);
+
+    if (!obraSocial) {
       return res.status(404).json({
-        message: "Especialidad no encontrada"
+        message: "Obra social no encontrada"
       });
     }
 
-    await service.update(id, nombre);
+    await service.update(
+      id,
+      nombre,
+      descripcion,
+      porcentaje_descuento,
+      es_particular
+    );
 
     res.json({
-      message: "Especialidad actualizada correctamente"
+      message: "Obra social actualizada correctamente"
     });
 
   } catch (error) {
@@ -82,20 +108,20 @@ export const update = async (req, res) => {
 
 export const remove = async (req, res) => {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
 
-    const especialidad = await service.getById(id);
+    const obraSocial = await service.getById(id);
 
-    if (!especialidad) {
+    if (!obraSocial) {
       return res.status(404).json({
-        message: "Especialidad no encontrada"
+        message: "Obra social no encontrada"
       });
     }
 
     await service.remove(id);
 
     res.status(200).json({
-      message: "Especialidad eliminada correctamente (Soft Delete)"
+      message: "Obra social eliminada correctamente (Soft Delete)"
     });
 
   } catch (error) {
