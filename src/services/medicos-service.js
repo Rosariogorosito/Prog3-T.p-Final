@@ -99,3 +99,41 @@ export const remove = async (id) => {
 
   return result;
 };
+
+export const getTurnosByMedico = async (id_usuario) => {
+  const [rows] = await db.query(
+    `SELECT
+        tr.id_turno_reserva,
+        tr.fecha_hora,
+        tr.valor_total,
+        tr.atentido,
+        u.apellido AS paciente_apellido,
+        u.nombres AS paciente_nombres,
+        os.nombre AS obra_social
+     FROM turnos_reservas tr
+     JOIN medicos m
+       ON m.id_medico = tr.id_medico
+     JOIN pacientes p
+       ON p.id_paciente = tr.id_paciente
+     JOIN usuarios u
+       ON u.id_usuario = p.id_usuario
+     LEFT JOIN obras_sociales os
+       ON os.id_obra_social = tr.id_obra_social
+     WHERE m.id_usuario = ?
+       AND tr.activo = 1`,
+    [id_usuario]
+  );
+
+  return rows;
+};
+
+export const marcarAtendido = async (id_turno) => {
+  const [result] = await db.query(
+    `UPDATE turnos_reservas
+     SET atentido = 1
+     WHERE id_turno_reserva = ?`,
+    [id_turno]
+  );
+
+  return result;
+};

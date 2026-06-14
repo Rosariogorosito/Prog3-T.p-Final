@@ -156,3 +156,45 @@ export const remove = async (req, res) => {
     });
   }
 };
+
+export const getMyTurnos = async (req, res) => {
+  try {
+
+    const id_usuario = req.user.id_usuario;
+
+    const turnos = await service.getTurnosByMedico(id_usuario);
+
+    res.status(200).json(turnos);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Error interno"
+    });
+
+  }
+};
+
+export const marcarAtendido = async (req, res) => {
+  try {
+
+    const { id } = req.params;
+
+    await service.marcarAtendido(id);
+
+    res.status(200).json({
+      message: "Turno marcado como atendido"
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Error interno"
+    });
+
+  }
+};
