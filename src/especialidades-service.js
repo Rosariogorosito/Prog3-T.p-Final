@@ -7,14 +7,6 @@ export const getAll = async () => {
   return rows;
 };
 
-export const update = async (id, nombre) => {
-  const [result] = await db.query(
-    "UPDATE especialidades SET nombre = ? WHERE id_especialidad = ? AND activo = 1",
-    [nombre, id]
-  );
-  return result;
-};
-
 export const getById = async (id) => {
   const [rows] = await db.query(
     "SELECT * FROM especialidades WHERE id_especialidad = ? AND activo = 1",
@@ -24,10 +16,29 @@ export const getById = async (id) => {
   return rows[0];
 };
 
+export const create = async (nombre) => {
+  const [result] = await db.query(
+    "INSERT INTO especialidades (nombre) VALUES (?)",
+    [nombre]
+  );
+
+  return result;
+};
+
+export const update = async (id, nombre) => {
+  const [result] = await db.query(
+    "UPDATE especialidades SET nombre = ? WHERE id_especialidad = ? AND activo = 1",
+    [nombre, id]
+  );
+
+  return result;
+};
+
 export const remove = async (id) => {
   const [result] = await db.query(
     "UPDATE especialidades SET activo = 0 WHERE id_especialidad = ?",
     [id]
   );
+
   return result;
 };
