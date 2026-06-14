@@ -1,6 +1,7 @@
 import express from "express";
 import especialidadesRoutes from "./src/routes/especialidades-routes.js";
 import obrasSocialesRoutes from "./src/routes/obras-sociales-routes.js";
+import authRoutes from "./src/routes/auth-routes.js";
 import medicosRoutes from "./src/routes/medicos-routes.js";
 import pacientesRoutes from "./src/routes/pacientes-routes.js";
 

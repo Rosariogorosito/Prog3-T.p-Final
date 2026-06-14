@@ -1,9 +1,9 @@
-import { Router } from "express";
-import * as controller from "../auth-controller.js";
+import express from "express";
+import * as controller from "../controllers/auth-controller.js";
 import { body } from "express-validator";
 import validate from "../db/validate.js";
 
-const router = Router();
+const router = express.Router();
 
 router.post(
   "/login",

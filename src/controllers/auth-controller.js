@@ -1,4 +1,4 @@
-import * as service from "./auth-service.js";
+import * as service from "../services/auth-service.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 

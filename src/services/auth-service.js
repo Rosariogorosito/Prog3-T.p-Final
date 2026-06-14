@@ -1,4 +1,4 @@
-import db from "./db/connection.js";
+import db from "../db/connection.js";
 
 export const login = async (email, contrasenia) => {
   const [rows] = await db.query(
