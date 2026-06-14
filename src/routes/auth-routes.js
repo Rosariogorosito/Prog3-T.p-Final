@@ -5,7 +5,6 @@ import validate from "../db/validate.js";
 
 const router = Router();
 
-// POST /auth/login
 router.post(
   "/login",
   [

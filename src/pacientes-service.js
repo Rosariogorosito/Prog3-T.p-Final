@@ -1,6 +1,5 @@
 import db from "./db/connection.js";
 
-// listar todos los pacientes activos con su usuario y obra social
 export const getAll = async () => {
   const [rows] = await db.query(
     `SELECT p.id_paciente, u.documento, u.apellido, u.nombres, u.email, u.foto_path,
@@ -13,7 +12,6 @@ export const getAll = async () => {
   return rows;
 };
 
-// modo paciente - . ver su propio perfil 
 export const getByUsuarioId = async (id_usuario) => {
   const [rows] = await db.query(
     `SELECT p.id_paciente, u.documento, u.apellido, u.nombres, u.email, u.foto_path,
@@ -27,7 +25,6 @@ export const getByUsuarioId = async (id_usuario) => {
   return rows[0];
 };
 
-// ADM- asociar la obra social de un paciente
 export const updateObraSocial = async (id_paciente, id_obra_social) => {
   const [result] = await db.query(
     `UPDATE pacientes p
@@ -46,7 +43,6 @@ export const updateObraSocial = async (id_paciente, id_obra_social) => {
 //   - Si la obra social ES particular (es_particular = 1):
 //       valor_total = medicos.valor_consulta
 export const createReserva = async (id_paciente, id_medico, id_obra_social, fecha_hora) => {
-  // Obtener valor_consulta del médico y datos de la obra social
   const [[medico]] = await db.query(
     "SELECT valor_consulta FROM medicos WHERE id_medico = ? AND activo = 1",
     [id_medico]
@@ -72,7 +68,6 @@ export const createReserva = async (id_paciente, id_medico, id_obra_social, fech
   return result;
 };
 
-// modo paciente . listar sus propios turnos
 export const getTurnosByPaciente = async (id_paciente) => {
   const [rows] = await db.query(
     `SELECT tr.id_turno_reserva, tr.fecha_hora, tr.valor_total, tr.atentido,

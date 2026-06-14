@@ -1,6 +1,5 @@
 import * as service from "./pacientes-service.js";
 
-// listar todos los pacientes
 export const getAll = async (req, res) => {
   try {
     const data = await service.getAll();
@@ -11,7 +10,6 @@ export const getAll = async (req, res) => {
   }
 };
 
-// ver perfil propio - modo paciente
 export const getMyProfile = async (req, res) => {
   try {
     const id_usuario = req.user.id_usuario; 
@@ -28,10 +26,9 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
-// asociar obra social a un paciente
 export const updateObraSocial = async (req, res) => {
   try {
-    const { id } = req.params;           // id_paciente
+    const { id } = req.params;           
     const { id_obra_social } = req.body;
 
     const result = await service.updateObraSocial(id, id_obra_social);
@@ -47,13 +44,11 @@ export const updateObraSocial = async (req, res) => {
   }
 };
 
-// modo paciente - crear un turno/reserva
 export const createReserva = async (req, res) => {
   try {
     const id_usuario = req.user.id_usuario;
     const { id_medico, id_obra_social, fecha_hora } = req.body;
 
-    // aca tenemos el id_paciente del usuario logueado
     const perfil = await service.getByUsuarioId(id_usuario);
     if (!perfil) {
       return res.status(404).json({ message: "Perfil de paciente no encontrado" });
@@ -79,7 +74,6 @@ export const createReserva = async (req, res) => {
   }
 };
 
-// modo paciente - listar sus propios turnos
 export const getMyTurnos = async (req, res) => {
   try {
     const id_usuario = req.user.id_usuario;
