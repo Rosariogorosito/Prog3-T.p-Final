@@ -4,20 +4,52 @@ import { verifyToken, requireRole } from "../../middlewares/auth.js";
 
 const router = Router();
 
-router.get("/", controller.getAll);
+router.get(
+  "/",
+  controller.getAll
+);
 
 router.get(
   "/especialidad/:id",
+  verifyToken,
+  requireRole(3),
   controller.getByEspecialidad
 );
 
-router.get("/:id", controller.getById);
+router.get(
+  "/:id",
+  verifyToken,
+  requireRole(3),
+  controller.getById
+);
 
-router.post("/", controller.create);
+router.post(
+  "/",
+  verifyToken,
+  requireRole(3),
+  controller.create
+);
 
-router.put("/:id", controller.update);
+router.put(
+  "/:id",
+  verifyToken,
+  requireRole(3),
+  controller.update
+);
 
-router.delete("/:id", controller.remove);
+router.delete(
+  "/:id",
+  verifyToken,
+  requireRole(3),
+  controller.remove
+);
+
+router.post(
+  "/obras-sociales",
+  verifyToken,
+  requireRole(3),
+  controller.asignarObraSocial
+);
 
 router.get(
   "/me/turnos",
@@ -31,12 +63,6 @@ router.patch(
   verifyToken,
   requireRole(1),
   controller.marcarAtendido
-);
-
-
-router.post(
-  "/obras-sociales",
-  controller.asignarObraSocial
 );
 
 export default router;
