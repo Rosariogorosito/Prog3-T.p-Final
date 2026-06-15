@@ -149,3 +149,14 @@ export const marcarAtendido = async (id_turno) => {
 
   return result;
 };
+
+export const asignarObraSocial = async (id_medico, id_obra_social) => {
+  const [result] = await db.query(
+    `INSERT INTO medicos_obras_sociales
+     (id_medico, id_obra_social, activo)
+     VALUES (?, ?, 1)`,
+    [id_medico, id_obra_social]
+  );
+
+  return result;
+};

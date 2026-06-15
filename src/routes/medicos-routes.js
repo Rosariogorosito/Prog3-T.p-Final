@@ -35,3 +35,8 @@ router.patch(
 );
 
 export default router;
+
+router.post(
+  "/obras-sociales",
+  controller.asignarObraSocial
+);

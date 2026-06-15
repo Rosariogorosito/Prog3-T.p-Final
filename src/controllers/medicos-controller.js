@@ -218,3 +218,20 @@ export const marcarAtendido = async (req, res) => {
 
   }
 };
+
+export const asignarObraSocial = async (req, res) => {
+  try {
+    const { id_medico, id_obra_social } = req.body;
+
+    const result = await service.asignarObraSocial(id_medico, id_obra_social);
+
+    res.status(201).json({
+      message: "Relación creada correctamente",
+      id: result.insertId
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error interno" });
+  }
+};
