@@ -6,6 +6,14 @@ const router = Router();
 
 router.get("/", controller.getAll);
 
+router.get(
+  "/especialidad/:id",
+  controller.getByEspecialidad
+);
+
+
+router.get("/:id", controller.getById);
+
 router.get("/:id", controller.getById);
 
 router.post("/", controller.create);

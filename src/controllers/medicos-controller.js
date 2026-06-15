@@ -18,6 +18,26 @@ export const getAll = async (req, res) => {
   }
 };
 
+export const getByEspecialidad = async (req, res) => {
+  try {
+
+    const { id } = req.params;
+
+    const medicos = await service.getByEspecialidad(id);
+
+    res.status(200).json(medicos);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Error interno"
+    });
+
+  }
+};
+
 export const getById = async (req, res) => {
   try {
 

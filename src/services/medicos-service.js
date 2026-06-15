@@ -9,6 +9,18 @@ export const getAll = async () => {
   return rows;
 };
 
+export const getByEspecialidad = async (id) => {
+
+  const [rows] = await db.query(
+    `SELECT *
+     FROM medicos
+     WHERE id_especialidad = ?`,
+    [id]
+  );
+
+  return rows;
+};
+
 export const getById = async (id) => {
   const [rows] = await db.query(
     `SELECT *
