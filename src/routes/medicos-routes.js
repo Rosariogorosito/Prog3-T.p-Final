@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as controller from "../controllers/medicos-controller.js";
-import { verifyToken } from "../../middlewares/auth.js";
+import { verifyToken, requireRole } from "../../middlewares/auth.js";
 
 const router = Router();
 
@@ -10,9 +10,6 @@ router.get(
   "/especialidad/:id",
   controller.getByEspecialidad
 );
-
-
-router.get("/:id", controller.getById);
 
 router.get("/:id", controller.getById);
 
@@ -25,18 +22,21 @@ router.delete("/:id", controller.remove);
 router.get(
   "/me/turnos",
   verifyToken,
+  requireRole(1),
   controller.getMyTurnos
 );
 
 router.patch(
   "/turnos/:id/atendido",
   verifyToken,
+  requireRole(1),
   controller.marcarAtendido
 );
 
-export default router;
 
 router.post(
   "/obras-sociales",
   controller.asignarObraSocial
 );
+
+export default router;
