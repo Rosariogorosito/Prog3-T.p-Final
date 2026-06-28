@@ -1,14 +1,14 @@
 import { Router } from "express";
-import * as controller from "../controllers/estadisticas-controller.js";
+import * as controller from "../controllers/informes-controller.js";
 import { verifyToken, requireRole } from "../../middlewares/auth.js";
 
 const router = Router();
 
 router.get(
-  "/",
+  "/turnos-por-especialidad",
   verifyToken,
   requireRole(3),
-  controller.getEstadisticas
+  controller.reporteTurnosPorEspecialidad
 );
 
 export default router;
