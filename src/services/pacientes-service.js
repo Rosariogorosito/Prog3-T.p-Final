@@ -100,7 +100,7 @@ export const createReserva = async (
     obraSocial.es_particular === 1
       ? medico.valor_consulta
       : medico.valor_consulta -
-        (obraSocial.porcentaje_descuento * medico.valor_consulta);
+      ((obraSocial.porcentaje_descuento / 100) * medico.valor_consulta);
 
   const [result] = await db.query(
     `INSERT INTO turnos_reservas
