@@ -1,0 +1,1052 @@
+openapi: 3.0.0
+info:
+  title: API Turnos Médicos
+  description: |
+    API REST para la gestión de turnos médicos.
+    
+    ## Roles
+    | Rol | Valor | Descripción |
+    |-----|-------|-------------|
+    | Médico | 1 | Puede ver y gestionar sus propios turnos |
+    | Paciente | 2 | Puede ver su perfil, turnos y crear reservas |
+    | Admin | 3 | Acceso completo a todos los recursos |
+
+    ## Autenticación
+    La mayoría de los endpoints requieren un token JWT en el header:
+    ```
+    Authorization: Bearer <token>
+    ```
+    El token se obtiene desde `POST /auth/login`.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+tags:
+  - name: Auth
+    description: Autenticación de usuarios
+  - name: Especialidades
+    description: Gestión de especialidades médicas
+  - name: Obras Sociales
+    description: Gestión de obras sociales
+  - name: Médicos
+    description: Gestión de médicos y sus turnos
+  - name: Pacientes
+    description: Gestión de pacientes y reservas
+  - name: Turnos
+    description: Gestión de turnos (Admin)
+  - name: Estadísticas
+    description: Estadísticas del sistema
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Error interno
+
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+              path:
+                type: string
+
+    Especialidad:
+      type: object
+      properties:
+        id_especialidad:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Cardiología
+        activo:
+          type: integer
+          example: 1
+
+    ObraSocial:
+      type: object
+      properties:
+        id_obra_social:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: OSDE
+        descripcion:
+          type: string
+          example: Obra social OSDE
+        porcentaje_descuento:
+          type: number
+          example: 0.4
+        es_particular:
+          type: integer
+          example: 0
+        activo:
+          type: integer
+          example: 1
+
+    Medico:
+      type: object
+      properties:
+        id_medico:
+          type: integer
+          example: 1
+        id_usuario:
+          type: integer
+          example: 5
+        id_especialidad:
+          type: integer
+          example: 2
+        matricula:
+          type: string
+          example: MN-12345
+        descripcion:
+          type: string
+          example: Médico con 10 años de experiencia
+        valor_consulta:
+          type: number
+          example: 15000
+
+    Paciente:
+      type: object
+      properties:
+        id_paciente:
+          type: integer
+          example: 1
+        documento:
+          type: string
+          example: "38123456"
+        apellido:
+          type: string
+          example: González
+        nombres:
+          type: string
+          example: María
+        email:
+          type: string
+          example: maria@email.com
+        foto_path:
+          type: string
+          nullable: true
+          example: null
+        id_obra_social:
+          type: integer
+          example: 2
+        obra_social:
+          type: string
+          example: OSDE
+
+    Turno:
+      type: object
+      properties:
+        id_turno_reserva:
+          type: integer
+          example: 1
+        fecha_hora:
+          type: string
+          format: date-time
+          example: "2026-07-10T10:00:00"
+        valor_total:
+          type: number
+          example: 9000
+        atentido:
+          type: integer
+          example: 0
+
+    TurnoMedico:
+      allOf:
+        - $ref: "#/components/schemas/Turno"
+        - type: object
+          properties:
+            paciente_apellido:
+              type: string
+              example: González
+            paciente_nombres:
+              type: string
+              example: María
+            obra_social:
+              type: string
+              example: OSDE
+
+    TurnoPaciente:
+      allOf:
+        - $ref: "#/components/schemas/Turno"
+        - type: object
+          properties:
+            medico_apellido:
+              type: string
+              example: Pérez
+            medico_nombres:
+              type: string
+              example: Carlos
+            especialidad:
+              type: string
+              example: Cardiología
+            obra_social:
+              type: string
+              example: OSDE
+
+paths:
+
+  #  AUTH 
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT válido por 8 horas.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, contrasenia]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@clinica.com
+                contrasenia:
+                  type: string
+                  example: "1234"
+      responses:
+        "200":
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  usuario:
+                    type: object
+                    properties:
+                      id_usuario:
+                        type: integer
+                        example: 1
+                      nombres:
+                        type: string
+                        example: Admin
+                      apellido:
+                        type: string
+                        example: Sistema
+                      email:
+                        type: string
+                        example: admin@clinica.com
+                      rol:
+                        type: integer
+                        example: 3
+        "401":
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Email o contraseña incorrectos
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  #  ESPECIALIDADES 
+
+  /especialidades:
+    get:
+      tags: [Especialidades]
+      summary: Listar todas las especialidades
+      description: Devuelve todas las especialidades activas. No requiere autenticación.
+      responses:
+        "200":
+          description: Lista de especialidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Especialidad"
+
+    post:
+      tags: [Especialidades]
+      summary: Crear especialidad
+      description: Crea una nueva especialidad. No requiere autenticación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre:
+                  type: string
+                  maxLength: 120
+                  example: Neurología
+      responses:
+        "201":
+          description: Especialidad creada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Especialidad creada correctamente
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+  /especialidades/{id}:
+    get:
+      tags: [Especialidades]
+      summary: Obtener especialidad por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Especialidad encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Especialidad"
+        "404":
+          description: Especialidad no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Especialidad no encontrada
+        "400":
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+
+    put:
+      tags: [Especialidades]
+      summary: Actualizar especialidad
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre:
+                  type: string
+                  maxLength: 120
+                  example: Neurología Clínica
+      responses:
+        "200":
+          description: Especialidad actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Especialidad actualizada correctamente
+        "404":
+          description: Especialidad no encontrada
+        "400":
+          description: Datos inválidos
+
+    delete:
+      tags: [Especialidades]
+      summary: Eliminar especialidad (soft delete)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Especialidad eliminada (soft delete)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Especialidad eliminada correctamente (Soft Delete)
+        "404":
+          description: Especialidad no encontrada
+
+  #  OBRAS SOCIALES 
+
+  /obras-sociales:
+    get:
+      tags: [Obras Sociales]
+      summary: Listar todas las obras sociales
+      description: Devuelve todas las obras sociales activas. No requiere autenticación.
+      responses:
+        "200":
+          description: Lista de obras sociales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ObraSocial"
+
+    post:
+      tags: [Obras Sociales]
+      summary: Crear obra social
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, descripcion, porcentaje_descuento, es_particular]
+              properties:
+                nombre:
+                  type: string
+                  example: Swiss Medical
+                descripcion:
+                  type: string
+                  example: Prepaga Swiss Medical
+                porcentaje_descuento:
+                  type: number
+                  example: 0.35
+                es_particular:
+                  type: integer
+                  enum: [0, 1]
+                  example: 0
+      responses:
+        "201":
+          description: Obra social creada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Obra social creada correctamente
+        "400":
+          description: Datos inválidos
+
+  /obras-sociales/{id}:
+    get:
+      tags: [Obras Sociales]
+      summary: Obtener obra social por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Obra social encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObraSocial"
+        "404":
+          description: Obra social no encontrada
+
+    put:
+      tags: [Obras Sociales]
+      summary: Actualizar obra social
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, descripcion, porcentaje_descuento, es_particular]
+              properties:
+                nombre:
+                  type: string
+                  example: Swiss Medical
+                descripcion:
+                  type: string
+                  example: Prepaga Swiss Medical
+                porcentaje_descuento:
+                  type: number
+                  example: 0.35
+                es_particular:
+                  type: integer
+                  enum: [0, 1]
+                  example: 0
+      responses:
+        "200":
+          description: Obra social actualizada
+        "404":
+          description: Obra social no encontrada
+
+    delete:
+      tags: [Obras Sociales]
+      summary: Eliminar obra social (soft delete)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Obra social eliminada (soft delete)
+        "404":
+          description: Obra social no encontrada
+
+  #  MÉDICOS 
+
+  /medicos:
+    get:
+      tags: [Médicos]
+      summary: Listar todos los médicos
+      description: Devuelve todos los médicos. No requiere autenticación.
+      responses:
+        "200":
+          description: Lista de médicos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medico"
+
+    post:
+      tags: [Médicos]
+      summary: Crear médico
+      description: Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_usuario, id_especialidad, matricula, descripcion, valor_consulta]
+              properties:
+                id_usuario:
+                  type: integer
+                  example: 5
+                id_especialidad:
+                  type: integer
+                  example: 2
+                matricula:
+                  type: string
+                  example: MN-12345
+                descripcion:
+                  type: string
+                  example: Especialista en cardiología
+                valor_consulta:
+                  type: number
+                  example: 15000
+      responses:
+        "201":
+          description: Médico creado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Médico creado correctamente
+                  id:
+                    type: integer
+                    example: 3
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado (rol insuficiente)
+
+  /medicos/{id}:
+    get:
+      tags: [Médicos]
+      summary: Obtener médico por ID
+      description: Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Médico encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medico"
+        "404":
+          description: Médico no encontrado
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+    put:
+      tags: [Médicos]
+      summary: Actualizar médico
+      description: Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_usuario:
+                  type: integer
+                  example: 5
+                id_especialidad:
+                  type: integer
+                  example: 2
+                matricula:
+                  type: string
+                  example: MN-12345
+                descripcion:
+                  type: string
+                  example: Especialista en cardiología
+                valor_consulta:
+                  type: number
+                  example: 18000
+      responses:
+        "200":
+          description: Médico actualizado correctamente
+        "404":
+          description: Médico no encontrado
+        "401":
+          description: Token no proporcionado o inválido
+
+    delete:
+      tags: [Médicos]
+      summary: Eliminar médico
+      description: |
+        Requiere rol Admin (3). No se puede eliminar un médico que tenga turnos asociados.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Médico eliminado correctamente
+        "400":
+          description: El médico tiene turnos asociados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: El médico tiene turnos asociados
+        "404":
+          description: Médico no encontrado
+
+  /medicos/especialidad/{id}:
+    get:
+      tags: [Médicos]
+      summary: Listar médicos por especialidad
+      description: Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID de la especialidad
+          schema:
+            type: integer
+          example: 2
+      responses:
+        "200":
+          description: Lista de médicos de esa especialidad
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medico"
+        "401":
+          description: Token no proporcionado o inválido
+
+  /medicos/obras-sociales:
+    post:
+      tags: [Médicos]
+      summary: Asignar obra social a médico
+      description: Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_medico, id_obra_social]
+              properties:
+                id_medico:
+                  type: integer
+                  example: 1
+                id_obra_social:
+                  type: integer
+                  example: 2
+      responses:
+        "201":
+          description: Relación creada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Relación creada correctamente
+                  id:
+                    type: integer
+                    example: 5
+        "401":
+          description: Token no proporcionado o inválido
+
+  /medicos/me/turnos:
+    get:
+      tags: [Médicos]
+      summary: Ver mis turnos (médico autenticado)
+      description: |
+        Devuelve los turnos del médico autenticado. Requiere rol Médico (1).
+        El médico se identifica a partir del token JWT.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de turnos del médico
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TurnoMedico"
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  /medicos/turnos/{id}/atendido:
+    patch:
+      tags: [Médicos]
+      summary: Marcar turno como atendido
+      description: Requiere rol Médico (1).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID del turno reserva
+          schema:
+            type: integer
+          example: 7
+      responses:
+        "200":
+          description: Turno marcado como atendido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Turno marcado como atendido
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  #  PACIENTES
+
+  /pacientes/me:
+    get:
+      tags: [Pacientes]
+      summary: Ver mi perfil (paciente autenticado)
+      description: |
+        Devuelve el perfil del paciente autenticado. Requiere rol Paciente (2).
+        El paciente se identifica a partir del token JWT.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Perfil del paciente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Paciente"
+        "404":
+          description: Perfil no encontrado
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  /pacientes/me/turnos:
+    get:
+      tags: [Pacientes]
+      summary: Ver mis turnos (paciente autenticado)
+      description: |
+        Devuelve los turnos del paciente autenticado, ordenados por fecha descendente.
+        Requiere rol Paciente (2).
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de turnos del paciente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TurnoPaciente"
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  /pacientes/me/reservas:
+    post:
+      tags: [Pacientes]
+      summary: Crear una reserva de turno
+      description: |
+        El paciente autenticado crea una reserva de turno. Requiere rol Paciente (2).
+        El valor total se calcula automáticamente aplicando el descuento de la obra social.
+        Si `es_particular = 1`, no se aplica descuento.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_medico, id_obra_social, fecha_hora]
+              properties:
+                id_medico:
+                  type: integer
+                  example: 1
+                id_obra_social:
+                  type: integer
+                  example: 2
+                fecha_hora:
+                  type: string
+                  format: date-time
+                  example: "2026-07-15T09:00:00"
+      responses:
+        "201":
+          description: Reserva creada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reserva creada correctamente
+                  id_turno_reserva:
+                    type: integer
+                    example: 12
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  /pacientes/{id}/obra-social:
+    put:
+      tags: [Pacientes]
+      summary: Asignar obra social a paciente
+      description: Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID del paciente
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_obra_social]
+              properties:
+                id_obra_social:
+                  type: integer
+                  example: 3
+      responses:
+        "200":
+          description: Obra social asignada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Obra social asignada correctamente
+        "404":
+          description: Paciente no encontrado
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  #  TURNOS 
+
+  /turnos:
+    post:
+      tags: [Turnos]
+      summary: Crear turno (Admin)
+      description: |
+        Crea un turno manualmente. Requiere rol Admin (3).
+        El valor total se calcula automáticamente según la obra social.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_paciente, id_medico, id_obra_social, fecha_hora]
+              properties:
+                id_paciente:
+                  type: integer
+                  example: 1
+                id_medico:
+                  type: integer
+                  example: 2
+                id_obra_social:
+                  type: integer
+                  example: 1
+                fecha_hora:
+                  type: string
+                  format: date-time
+                  example: "2026-07-20T14:30:00"
+      responses:
+        "201":
+          description: Turno registrado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Turno registrado correctamente
+                  id_turno_reserva:
+                    type: integer
+                    example: 15
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
+
+  #  ESTADÍSTICAS 
+
+  /estadisticas:
+    get:
+      tags: [Estadísticas]
+      summary: Obtener estadísticas de turnos por especialidad
+      description: |
+        Ejecuta el stored procedure `especialidades_x_turnos()` y devuelve
+        la cantidad de turnos agrupados por especialidad. Requiere rol Admin (3).
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Estadísticas obtenidas correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    especialidad:
+                      type: string
+                      example: Cardiología
+                    total_turnos:
+                      type: integer
+                      example: 42
+        "401":
+          description: Token no proporcionado o inválido
+        "403":
+          description: No autorizado
