@@ -19,6 +19,9 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "mysql2": "^3.22.1",
-    "puppeteer": "^24.43.1"
+    "puppeteer": "^24.43.1",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.0"
   }
 }

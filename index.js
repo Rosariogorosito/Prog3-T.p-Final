@@ -1,7 +1,7 @@
 import express from "express";
-import cors from "cors";
-import morgan from "morgan";
-
+import swaggerUi from "swagger-ui-express";
+import { readFileSync } from "fs";
+import { parse } from "yaml";
 import especialidadesRoutes from "./src/routes/especialidades-routes.js";
 import obrasSocialesRoutes from "./src/routes/obras-sociales-routes.js";
 import medicosRoutes from "./src/routes/medicos-routes.js";
@@ -12,9 +12,11 @@ import informesRoutes from "./src/routes/informes-routes.js";
 
 const app = express();
 
-app.use(cors());
-app.use(morgan("dev"));
 app.use(express.json());
+
+// Swagger
+const swaggerDocument = parse(readFileSync("./swagger.yaml", "utf8"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/especialidades", especialidadesRoutes);
 app.use("/obras-sociales", obrasSocialesRoutes);
@@ -26,4 +28,5 @@ app.use("/informes", informesRoutes);
 
 app.listen(3000, () => {
   console.log("Servidor corriendo en puerto 3000");
+  console.log("Documentación disponible en http://localhost:3000/api-docs");
 });
