@@ -9,7 +9,7 @@ router.get("/me", verifyToken, requireRole(2), controller.getMyProfile);
 
 router.get("/me/turnos", verifyToken, requireRole(2), controller.getMyTurnos);
 
-router.post("/me/reservas", verifyToken, requireRole(2), controller.createReserva);
+router.post("/me/reservas", verifyToken, requireRole(2, 3), controller.createReserva);
 
 router.put("/:id/obra-social", verifyToken, requireRole(3), controller.updateObraSocial);
 
